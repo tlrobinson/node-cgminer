@@ -1,0 +1,29 @@
+#!/usr/bin/env coffee
+
+CGMinerClient = require "../index"
+
+client = new CGMinerClient
+  host: process.env.CGMINER_HOST or "localhost"
+  port: process.env.CGMINER_PORT or 4028
+
+command = process.argv[2].toLowerCase()
+
+if command is "help"
+  if process.argv.length > 3
+    command = process.argv[3].toLowerCase()
+    info = CGMinerClient.commands[command]
+    console.log "Command:", info.name, if info.privledged then "(privledged)" else ""
+    console.log "Arguments:", info.args if info.args?
+    console.log "Reply:", info.reply if info.reply?
+    console.log "Details:\n"
+    console.log info.details.split("\n").map((l) -> "    " + l).join("\n")
+    console.log ""
+  else
+    for name, command of CGMinerClient.commands
+      console.log name + " " +
+        (if command.args? then "#{command.args} " else "") +
+        (if command.reply? then "-> " + command.reply else "")
+else
+  client[command].apply(client, process.argv[3..]).then (result) ->
+    console.log result
+  .done()
